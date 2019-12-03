@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<meta charset = utf8>
+<html>
+   
+<head>
+    <title>Example with HW button</title>
+</head>    
+
+<body>
+   
+<div id="print1"></div>
+
+<script type="text/javascript">
+"use strict"; // in order to use clasess
+
+var numberOfLinesBeforeScroll = 30;
+var linesPrintCounter = 0;
+
+var divElement = document.getElementById("print1"); // var for div el.
+
+function log(msg) {
+    var node = document.createElement("tr"); // we create new row
+    var textnode = document.createTextNode(linesPrintCounter + "|" + msg);
+    node.appendChild(textnode); // adding text to "node"
+    divElement.insertBefore(node, divElement.childNodes[0]);
+    if (linesPrintCounter > numberOfLinesBeforeScroll-1) {
+        divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]);
+    }
+    linesPrintCounter++; // increase the counter of printouts
+}
+
+var ws = new WebSocket('ws://172.16.22.121:8888/');
+
+ws.onmessage = function(event) {
+    var msg = JSON.parse(event.data); // string from ws is put to JSON
+    switch(msg.type) {
+        case "message":
+            log(msg.content); // add msg to div
+        break;
+        case "clientReadValues":
+            log(msg.desiredValue); // add msg with value to div
+        break;        
+    }
+};
+
+ws.onclose = function (value) {
+    log("Connection closed.");
+}
+
+</script>
+   
+</body>    
+   
+</html>
