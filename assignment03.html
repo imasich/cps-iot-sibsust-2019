@@ -27,8 +27,8 @@
 "use strict"; // in order to use clasess
 
 var divElement = document.getElementById("print1"); // var for div el.
-var canvas1;
-var canvas1color = "#008000";
+//var canvas1;
+var ctx; // = "#008000";
 
 function log(msg) {
 
@@ -40,24 +40,23 @@ function log(msg) {
 var ws = new WebSocket('ws://172.16.22.121:8888/');
 
 function load() { // function that is started, when we open the page
-    canvas1 = document.getElementById("canvas1");
-    canvas1color = 
- //   ctx1 = canvas1.getContext("2d");
-    // initialization of graph with points
- //   ctx1.lineWidth = "1";
-//ctx1.strokeStyle = "#ff0000";
-    // draw first time series initialization
-    for (var i=0; i<200; i++) {
-//x1[i] = i; // for x values are 0, 1, 2, ...
-//y1[i] = 0; // for y values are 0
-    };
+    ctx = document.getElementById("canvas1").getContext("2d");
+    ctx.fillStyle = "green";
+    ctx.fillRect(0,0,200,100);
 };
 
 ws.onmessage = function (event) {
-
     log(event.data);
-    
-
+    switch(event.data) {
+        case "0":
+           ctx.fillStyle = "green";
+           ctx.fillRect(0, 0, 200, 100);
+        break;
+        case "1":
+           ctx.fillStyle = "red";
+           ctx.fillRect(0, 0, 200, 100);
+        break;
+    }    
 }
 
 
