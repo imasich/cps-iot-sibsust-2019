@@ -10,7 +10,10 @@
     
 <div>
 <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>    
-</div>       
+</div>
+
+<button id="buttonStartControlAlgorithm" onClick="startControlAlgorithm()">Start Ctrl Alg</button>
+<button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm()">Stop Ctrl Alg</button>
   
 <div id="print1"></div>    
  
@@ -105,24 +108,20 @@ ws.onmessage = function(event) {
             ctx1.stroke(); // to draw the line
             // Draw second graph graph END ************************************    
             
-            log(potValue1 + "|" + potValue2);
-            
-            if (potValue1-potValue2>100) {
-                ctx1.fillStyle ="blue";
-                ctx1.fillRect(0,0,50,50);
-                ws.send("low");
-            } else if (potValue2-potValue1>100) {
-                ctx1.fillStyle = "red";
-                ctx1.fillRect(0,0,50,50);
-                ws.send("high");                
-            } else {
-                ctx1.fillStyle ="green";
-                ctx1.fillRect(0,0,50,50);
-                ws.send("equal");                
-            }
+            log(potValue1 + "|" + potValue2 + "|" + msg.error + "|" + msg.pwm);
         break;        
     }
 };
+
+function startControlAlgorithm () {
+    messageJSON = {"type": "startControlAlgorithm"};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+}
+
+function stopControlAlgorithm () {
+    messageJSON = {"type": "stopControlAlgorithm"};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+}
  
 </script>
 

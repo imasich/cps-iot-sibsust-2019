@@ -5,8 +5,6 @@ const WebSocket = require('ws'); // for permanent connection between server and 
 
 const wss = new WebSocket.Server({port: 8888}); // websocket port is 8888
 
-
-
 wss.broadcast = function broadcast(data) {
   wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
@@ -27,21 +25,18 @@ var messageJSON;
 
 console.log("Starting the code");
 
-
-var board = new firmata.Board("/dev/ttyACM0", function(){ // ACM Abstract Control Model for serial communication with Arduino (could be USB)
+var board = new firmata.Board("/dev/ttyACM0", function(){
     console.log("Connecting to Arduino");
-    console.log("Activation of Pin 13");
-    board.pinMode(13, board.MODES.OUTPUT); // Configures the specified pin to behave either as an input or an output.
-    board.pinMode(12, board.MODES.OUTPUT);
-    board.pinMode(11, board.MODES.OUTPUT);
-
     console.log("Enabling analog Pin 0");
     board.pinMode(0, board.MODES.ANALOG); // analog pin 0
     board.pinMode(1, board.MODES.ANALOG); // analog pin 1
+    board.pinMode(2, board.MODES.OUTPUT); // direction of DC motor
+    board.pinMode(3, board.MODES.PWM); // PWM of motor i.e. speed of rotation
+    board.pinMode(4, board.MODES.OUTPUT); // direction DC motor
 });
 
 function handler(req, res) {
-    fs.readFile(__dirname + "/assignment04.html",
+    fs.readFile(__dirname + "/example13.html",
     function (err, data) {
         if (err) {
             res.writeHead(500, {"Content-Type": "text/plain"});
@@ -54,7 +49,9 @@ function handler(req, res) {
 
 var desiredValue = 0; // desired value var
 var actualValue = 0; // variable for actual value (output value)
-//var differ = 0;
+
+var pwm;
+var factor = 0.1; // proportional factor that determines the speed of aproaching toward desired value
 
 http.listen(8080); // server will listen on port 8080
 
@@ -66,38 +63,30 @@ board.on("ready", function() {
     board.analogRead(1, function(value) {
         actualValue = value; // continuous read of pin A1
     });
-//    differ = Math.abs(desiredValue-actualValue);
     
-
+    startControlAlgorithm(); // to start control alg.
+    
     wss.on('connection', function (ws, req) { // start of wss code
         messageJSON = {"type": "message", "content": "Srv connected, board OK"};
         ws.send(JSON.stringify(messageJSON));
-        //console.log(wss.clients[1]);
         setInterval(sendValues, 40); // on 40ms we send message to client
-        
-        ws.on("message", function (value) {
-            switch (value) {
-            case "low":
-                board.digitalWrite(13, board.HIGH);
-                board.digitalWrite(12, board.LOW);
-                board.digitalWrite(11, board.LOW);
-            break;
-            case "high":
-                board.digitalWrite(12, board.HIGH);
-                board.digitalWrite(13, board.LOW);
-                board.digitalWrite(11, board.LOW);
-            break;
-            case "equal":
-                board.digitalWrite(11, board.HIGH);
-                board.digitalWrite(13, board.LOW);
-                board.digitalWrite(12, board.LOW);
-            break;
-            }
-        })
-       
     }); // end of sockets.on connection
 
 }); // end of board.on(ready)
+
+function startControlAlgorithm () {
+    setInterval(function() {controlAlgorithm(); }, 30); // na 30ms call
+    console.log("Control algorithm started")
+};
+
+function controlAlgorithm () {
+    pwm = factor*(desiredValue-actualValue);
+    if(pwm > 255) {pwm = 255}; // to limit the value for pwm / positive
+    if(pwm < -255) {pwm = -255}; // to limit the value for pwm / negative
+    if (pwm > 0) {board.digitalWrite(2,1); board.digitalWrite(4,0);}; // določimo smer če je > 0
+    if (pwm < 0) {board.digitalWrite(2,0); board.digitalWrite(4,1);}; // določimo smer če je < 0
+    board.analogWrite(3, Math.abs(pwm));
+};
 
 function sendValues () {
     //wss.sendToLastWs(JSON.stringify({"type": "clientReadValues", "desiredValue": desiredValue}));

@@ -106,20 +106,6 @@ ws.onmessage = function(event) {
             // Draw second graph graph END ************************************    
             
             log(potValue1 + "|" + potValue2);
-            
-            if (potValue1-potValue2>100) {
-                ctx1.fillStyle ="blue";
-                ctx1.fillRect(0,0,50,50);
-                ws.send("low");
-            } else if (potValue2-potValue1>100) {
-                ctx1.fillStyle = "red";
-                ctx1.fillRect(0,0,50,50);
-                ws.send("high");                
-            } else {
-                ctx1.fillStyle ="green";
-                ctx1.fillRect(0,0,50,50);
-                ws.send("equal");                
-            }
         break;        
     }
 };
