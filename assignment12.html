@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<meta charset = utf8>
+<html>
+
+<head>
+    <title>Example with DC motor and buttons</title>
+</head>
+
+<body>
+Desired position: <input id="dp" value=90 />   
+<button id="buttonSendDP" onClick="sendDP()">Send Desired Pos</button>
+<button id="button0" onClick="set0()">0</button>
+<button id="button45" onClick="set45()">45</button>
+<button id="button90" onClick="set90()">90</button>
+<button id="button135" onClick="set135()">135</button>
+<button id="button180" onClick="set180()">180</button>
+
+<div id="divForPrint"></div>
+
+<br>
+
+<script type="text/javascript">
+
+var divForPrint = document.getElementById("divForPrint");
+// var for printing messages
+var numberOfLinesInLog = 20; // variable for the number of lines in log div
+var counterOfLogs = 0; // variable for counting the logs
+
+function log(msg) { // function to print messages to div with implemented scroll
+    var node=document.createElement("tr"); // we create variable node as tr (table row)
+    var textnode=document.createTextNode(counterOfLogs + " | " + msg); // create elem. with text
+    node.appendChild(textnode); // add to "node", i.e. table row
+    divForPrint.insertBefore(node, divForPrint.childNodes[0]); // insert into variable divForPrint -> document.getElementById("divForPrint");
+    if (counterOfLogs > numberOfLinesInLog-1) { // if there are more numbers as e.g. 10
+        divForPrint.removeChild(divForPrint.childNodes[numberOfLinesInLog]); // remove the oldest printout
+    }
+    counterOfLogs = counterOfLogs + 1; // increase the counter of logs
+}
+
+let ws = new WebSocket("ws://172.16.22.121:8888"); // create socket - connect to it
+var messageJSON;
+
+ws.onmessage = function(event) {
+    var msg = JSON.parse(event.data); // string from ws is put to JSON
+    switch(msg.type) {
+        case "message":
+            log(msg.content); // add msg to div
+        break;
+    }
+};
+
+ws.onclose = function(event) {
+  log("WebSocket is closed now.");
+};
+
+function sendDP () {
+    valueDP = document.getElementById("dp").value;
+    messageJSON = {"type": "sendDP", "dp": valueDP}; // JSON structure of the message
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket
+};
+
+function set0() {
+    messageJSON = {"type": "set0", "servo": 0};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+};
+
+function set45() {
+    messageJSON = {"type": "set45", "servo": 45};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+};
+
+function set90() {
+    messageJSON = {"type": "set90", "servo": 90};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+};
+
+function set135() {
+    messageJSON = {"type": "set135", "servo": 135};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+};
+
+function set180() {
+    messageJSON = {"type": "set180", "servo": 180};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+};
+
+
+
+</script>
+    
+</body>
+    
+</html>
